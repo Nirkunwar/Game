@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Good Vibes Game | Paray</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    
+    <style>
+        :root {
+            --primary: #ff758c;
+            --secondary: #ff7eb3;
+            --bg: #0f172a;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+            padding: 20px 0;
+            box-sizing: border-box;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 40px;
+            width: 90%;
+            max-width: 450px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            transition: all 0.5s ease;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        #progress-bar {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 10px;
+            transition: width 0.4s ease;
+        }
+
+        h2 { font-weight: 600; margin-bottom: 10px; font-size: 1.5rem; }
+        p.subtitle { color: #94a3b8; margin-bottom: 30px; font-size: 0.9rem; }
+
+        .options-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .option-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 12px;
+            color: white;
+            cursor: pointer;
+            font-size: 1rem;
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.2s;
+            width: 100%;
+            text-align: left;
+        }
+
+        .option-btn:hover {
+            background: var(--primary);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(255, 117, 140, 0.4);
+        }
+
+        /* Custom answer option — slightly different style */
+        .option-btn.custom-toggle {
+            background: rgba(255, 117, 140, 0.08);
+            border: 1px dashed rgba(255, 117, 140, 0.5);
+            color: #ff9db0;
+            text-align: center;
+            font-size: 0.92rem;
+        }
+
+        .option-btn.custom-toggle:hover {
+            background: rgba(255, 117, 140, 0.25);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(255, 117, 140, 0.2);
+        }
+
+        /* Custom text input area */
+        .custom-input-wrap {
+            display: none;
+            margin-top: 4px;
+            animation: fadeIn 0.25s ease;
+        }
+
+        .custom-input-wrap.visible {
+            display: flex;
+            gap: 8px;
+            align-items: stretch;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .custom-input-wrap textarea {
+            flex: 1;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255, 117, 140, 0.5);
+            border-radius: 12px;
+            padding: 12px 14px;
+            color: white;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.9rem;
+            resize: none;
+            outline: none;
+            min-height: 60px;
+            line-height: 1.5;
+            transition: border-color 0.2s;
+        }
+
+        .custom-input-wrap textarea::placeholder {
+            color: #64748b;
+        }
+
+        .custom-input-wrap textarea:focus {
+            border-color: var(--primary);
+        }
+
+        .send-custom-btn {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 1.3rem;
+            cursor: pointer;
+            padding: 0 14px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            flex-shrink: 0;
+        }
+
+        .send-custom-btn:hover {
+            transform: scale(1.08);
+            box-shadow: 0 4px 14px rgba(255, 117, 140, 0.45);
+        }
+
+        #final-screen { display: none; }
+        .highlight { color: var(--primary); font-weight: 600; }
+        
+        .sending-msg {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="glass-card" id="quiz-card">
+        <div class="progress-container">
+            <div id="progress-bar"></div>
+        </div>
+
+        <div id="question-container">
+            <h2 id="greeting">Hey <span class="highlight">Pramila</span>!</h2>
+            <p class="subtitle" id="q-text">Ready for a quick question vibe Game?</p>
+            <div class="options-grid" id="options">
+                <button class="option-btn" style="text-align:center" onclick="startQuiz()">Let's Do It ✨</button>
+            </div>
+        </div>
+
+        <div id="final-screen">
+            <h2 id="final-title">Now I Will Guess Your Answer, So Be True hai.</h2>
+            <p id="final-msg">Exited and Happy</p>
+            <p class="sending-msg" id="status">Syncing results...</p>
+            <button class="option-btn" style="margin-top:20px; text-align:center" onclick="location.reload()">Take it again?</button>
+        </div>
+    </div>
+
+    <script>
+        const ACCESS_KEY = "a04ed73a-e707-4d3e-ac7c-167693602454";
+        
+        const questions = [
+            { q: "If I was beside you right now, what would you do first?", a: ["Hug you 🤗", "Talk nonstop ❤️", "Just stare at you 👀", "Get shy 🙈"] },
+            { q: "What makes me special for you?", a: ["My care 💕", "My personality 😌", "My voice 🎧", "Everything 😭❤️"] },
+            { q: "If I suddenly stopped texting for one day, what would you do?", a: ["Miss you badly 🥹", "Spam your phone 📱", "Act angry 😭", "Wait for your text ❤️"] },
+            { q: "Which thing about me gives you butterflies?", a: ["My flirting 😭", "My attention 💕", "My smile 😊", "My caring nature ❤️"] },
+            { q: "If we go on a date together, where would you choose?", a: ["Coffee date ☕", "Night drive 🌙", "Movie date 🎬", "Long walk together 🚶‍♂️❤️"] },
+            { q: "How would you describe me in one word?", a: ["Cute 😭", "Special ✨", "Comfort person 🫠", "Dangerously attractive 👀"] },
+            { q: "What would make you fall more for me?", a: ["More attention 💕", "Late night talks 🌙", "Cute surprises 🎁", "My loyalty ❤️"] },
+            { q: "What would you steal from me?", a: ["My hoodie 👕", "My attention 😭", "My heart ❤️", "My time ⏳"] },
+            { q: "If I got jealous because of another guy, what would you do?", a: ["Calm you down 🥹", "Tease you 😭", "Give extra attention ❤️", "Make you feel secure ✨"] },
+            { q: "What kind of vibe do we have together?", a: ["Cute couple vibe 🫶", "Best friends vibe 😌", "Romantic vibe ❤️", "Dangerous chemistry 👀"] },
+            { q: "Which thing would you love doing with me most?", a: ["Late night calls 🌙", "Watching sunsets 🌅", "Taking cute photos 📸", "Long conversations ❤️"] },
+            { q: "If I said 'I miss you', what would your reply be?", a: ["I miss you more 🥹", "Come meet me 😭❤️", "Aww cute 😌", "Stop making me blush 🙈"] },
+            { q: "How do you feel when my notification pops up?", a: ["Instant smile 😊", "Excited 😭", "Feel special ❤️", "Act normal but happy 👀"] },
+            { q: "What role do you think I have in your life?", a: ["Special person ✨", "Future boyfriend ❤️", "Comfort person 🫠", "Favorite human 😭"] },
+            { q: "Be honest… what do you secretly want from me?", a: ["More attention 💕", "A tight hug 🤗", "Unlimited calls 🌙", "Love & loyalty ❤️"] },
+        ];
+
+        let currentIdx = 0;
+        let selectedAnswers = [];
+
+        function startQuiz() {
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const q = questions[currentIdx];
+            document.getElementById('greeting').innerHTML = `Question <span class="highlight">${currentIdx + 1}</span>/${questions.length}`;
+            document.getElementById('q-text').innerText = q.q;
+            
+            const optionsDiv = document.getElementById('options');
+            optionsDiv.innerHTML = '';
+            
+            // Render the 4 normal options
+            q.a.forEach(answer => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = answer;
+                btn.onclick = () => handleAnswer(answer);
+                optionsDiv.appendChild(btn);
+            });
+
+            // "Write my own" toggle button
+            const customToggle = document.createElement('button');
+            customToggle.className = 'option-btn custom-toggle';
+            customToggle.innerText = '✍️ Write my own answer…';
+            customToggle.onclick = () => toggleCustomInput(customInputWrap, customToggle);
+            optionsDiv.appendChild(customToggle);
+
+            // Hidden text input area
+            const customInputWrap = document.createElement('div');
+            customInputWrap.className = 'custom-input-wrap';
+
+            const textarea = document.createElement('textarea');
+            textarea.placeholder = 'Type your own answer here…';
+            textarea.rows = 2;
+
+            const sendBtn = document.createElement('button');
+            sendBtn.className = 'send-custom-btn';
+            sendBtn.title = 'Submit';
+            sendBtn.innerHTML = '💌';
+            sendBtn.onclick = () => {
+                const val = textarea.value.trim();
+                if (!val) {
+                    textarea.focus();
+                    textarea.style.borderColor = '#ff4d4d';
+                    setTimeout(() => textarea.style.borderColor = 'rgba(255,117,140,0.5)', 1200);
+                    return;
+                }
+                handleAnswer('(Her own words): ' + val);
+            };
+
+            // Also allow Enter key to submit (Shift+Enter for new line)
+            textarea.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendBtn.click();
+                }
+            });
+
+            customInputWrap.appendChild(textarea);
+            customInputWrap.appendChild(sendBtn);
+            optionsDiv.appendChild(customInputWrap);
+
+            updateProgress();
+        }
+
+        function toggleCustomInput(wrap, toggleBtn) {
+            const isVisible = wrap.classList.contains('visible');
+            if (isVisible) {
+                wrap.classList.remove('visible');
+                toggleBtn.innerText = '✍️ Write my own answer…';
+            } else {
+                wrap.classList.add('visible');
+                toggleBtn.innerText = '✍️ Hide custom answer';
+                wrap.querySelector('textarea').focus();
+            }
+        }
+
+        function handleAnswer(answer) {
+            selectedAnswers.push(`Q${currentIdx + 1}. ${questions[currentIdx].q}\n   ➜ ${answer}`);
+            
+            if (currentIdx < questions.length - 1) {
+                currentIdx++;
+                showQuestion();
+            } else {
+                showFinal();
+            }
+        }
+
+        function updateProgress() {
+            const percent = (currentIdx / questions.length) * 100;
+            document.getElementById('progress-bar').style.width = percent + "%";
+        }
+
+        async function showFinal() {
+            document.getElementById('progress-bar').style.width = "100%";
+            document.getElementById('question-container').style.display = 'none';
+            document.getElementById('final-screen').style.display = 'block';
+            
+            confetti({
+                particleCount: 150,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#ff758c', '#ff7eb3', '#ffffff']
+            });
+
+            try {
+                const response = await fetch("https://api.web3forms.com/submit", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "Accept": "application/json" },
+                    body: JSON.stringify({
+                        access_key: ACCESS_KEY,
+                        subject: "New Vibe Check Results from Girl!",
+                        from_name: "Mimi's Choice Bot",
+                        message: "Here are the answers chosen by Girl:\n\n" + selectedAnswers.join("\n\n")
+                    })
+                });
+                
+                if (response.ok) {
+                    document.getElementById('status').innerText = "What a Lovely Answer Paray 💕";
+                }
+            } catch (e) {
+                console.log("Email failed to send", e);
+            }
+        }
+    </script>
+</body>
+</html>
